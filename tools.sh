@@ -31,10 +31,10 @@ create_user()
 		echo "user ${username} already exists"
 	else
 		# create unix user without password and home directory (optional uid)
-		adduser -D -H "${uid:+-u $uid}" -G "${groupname}" "${username}"
+		adduser -D -H -G "${groupname}" ${uid:+-u $uid} "${username}";
 
 		# add user to samba internal user DB (optional sid)
-		echo -e "$password\n$password" | smbpasswd -s -a "${username}" "${sid:+-U $sid}"
+		echo -e "$password\n$password" | smbpasswd -s -a ${sid:+-U $sid} "${username}";
 
 		# enable samba user
 		smbpasswd -e "${username}"
