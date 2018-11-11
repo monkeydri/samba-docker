@@ -39,7 +39,7 @@ OR set local storage:
 				-n					Start the 'nmbd' daemon to advertise the shares
 				-p					Set ownership and permissions on the shares
 				-r					Disable recycle bin for shares
-				-S					Disable SMB2 minimum version
+				-S					Disable SMB minimum protocol version conf setting (SMB2 by default)
 				-s "<name;/path>[;browse;readonly;guest;users;admins;writelist;comment]"
 										Configure a share
 										required arg: "<name>;</path>"

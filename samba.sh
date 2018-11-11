@@ -121,12 +121,11 @@ share() { local share="$1" path="$2" browsable="${3:-yes}" ro="${4:-yes}" \
 		[[ -d $path ]] || mkdir -p $path
 }
 
-### smb: disable SMB2 minimum
-# Arguments:
-#   none)
-# Return: result
-smb() { local file=/etc/samba/smb.conf
-		sed -i '/min protocol/d' $file
+# disable SMB minimum protocol version conf setting (SMB2 by default)
+smb()
+{
+	local file=/etc/samba/smb.conf
+	sed -i '/min protocol/d' $file
 }
 
 # create user (unix user + samba user) - default group is users
@@ -186,7 +185,7 @@ Options (fields in '[]' are optional, '<>' are required):
 		-n					Start the 'nmbd' daemon to advertise the shares
 		-p					Set ownership and permissions on the shares
 		-r					Disable recycle bin for shares
-		-S					Disable SMB2 minimum version
+		-S					Disable SMB minimum protocol version conf setting (SMB2 by default)
 		-s \"<name;/path>[;browse;readonly;guest;users;admins;writelist;comment]\"
 								Configure a share
 								required arg: \"<name>;</path>\"
