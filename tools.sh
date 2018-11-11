@@ -61,7 +61,8 @@ export_users()
 	grep -E "${usernames}" /etc/group > "${UNIX_GROUPS_FILE}"
 
 	# export samba users DB
-	pdbedit -e smbpasswd > "${SAMBA_USERS_FILE}"
+	rm ${SAMBA_USERS_FILE}
+	pdbedit -e smbpasswd:"${SAMBA_USERS_FILE}"
 }
 
 # usage: Help
