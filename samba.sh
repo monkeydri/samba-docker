@@ -23,14 +23,14 @@ set -o nounset                              # Treat unset variables as an error
 #   chars) from:to character mappings separated by ','
 # Return: configured character mapings
 charmap() { local chars="$1" file=/etc/samba/smb.conf
-    grep -q catia $file || sed -i '/TCP_NODELAY/a \
+		grep -q catia $file || sed -i '/TCP_NODELAY/a \
 \
-    vfs objects = catia\
-    catia:mappings =\
+		vfs objects = catia\
+		catia:mappings =\
 
-                ' $file
+								' $file
 
-    sed -i '/catia:mappings/s/ =.*/ = '"$chars" $file
+		sed -i '/catia:mappings/s/ =.*/ = '"$chars" $file
 }
 
 ### global: set a global config option
@@ -38,19 +38,19 @@ charmap() { local chars="$1" file=/etc/samba/smb.conf
 #   option) raw option
 # Return: line added to smb.conf (replaces existing line with same key)
 global() { local key="${1%%=*}" value="${1#*=}" file=/etc/samba/smb.conf
-    if grep -qE '^;*\s*'"$key" "$file"; then
-        sed -i 's|^;*\s*'"$key"'.*|   '"${key% } = ${value# }"'|' "$file"
-    else
-        sed -i '/\[global\]/a \   '"${key% } = ${value# }" "$file"
-    fi
+		if grep -qE '^;*\s*'"$key" "$file"; then
+				sed -i 's|^;*\s*'"$key"'.*|   '"${key% } = ${value# }"'|' "$file"
+		else
+				sed -i '/\[global\]/a \   '"${key% } = ${value# }" "$file"
+		fi
 }
 
 ### include: add a samba config file include
 # Arguments:
 #   file) file to import
 include() { local includefile="$1" file=/etc/samba/smb.conf
-    sed -i "\\|include = $includefile|d" "$file"
-    echo "include = $includefile" >> "$file"
+		sed -i "\\|include = $includefile|d" "$file"
+		echo "include = $includefile" >> "$file"
 }
 
 ### import: import a smbpasswd file
@@ -58,10 +58,10 @@ include() { local includefile="$1" file=/etc/samba/smb.conf
 #   file) file to import
 # Return: user(s) added to container
 import() { local file="$1" name id
-    while read name id; do
-        grep -q "^$name:" /etc/passwd || adduser -D -H -u "$id" "$name"
-    done < <(cut -d: -f1,2 $file | sed 's/:/ /')
-    pdbedit -i smbpasswd:$file
+		while read name id; do
+				grep -q "^$name:" /etc/passwd || adduser -D -H -u "$id" "$name"
+		done < <(cut -d: -f1,2 $file | sed 's/:/ /')
+		pdbedit -i smbpasswd:$file
 }
 
 ### perms: fix ownership and permissions of share paths
@@ -69,11 +69,11 @@ import() { local file="$1" name id
 #   none)
 # Return: result
 perms() { local i file=/etc/samba/smb.conf
-    for i in $(awk -F ' = ' '/   path = / {print $2}' $file); do
-        chown -Rh smbuser. $i
-        find $i -type d ! -perm 775 -exec chmod 775 {} \;
-        find $i -type f ! -perm 0664 -exec chmod 0664 {} \;
-    done
+		for i in $(awk -F ' = ' '/   path = / {print $2}' $file); do
+				chown -Rh smbuser. $i
+				find $i -type d ! -perm 775 -exec chmod 775 {} \;
+				find $i -type f ! -perm 0664 -exec chmod 0664 {} \;
+		done
 }
 
 ### recycle: disable recycle bin
@@ -81,7 +81,7 @@ perms() { local i file=/etc/samba/smb.conf
 #   none)
 # Return: result
 recycle() { local file=/etc/samba/smb.conf
-    sed -i '/recycle/d; /vfs/d' $file
+		sed -i '/recycle/d; /vfs/d' $file
 }
 
 ### share: Add share
@@ -97,28 +97,28 @@ recycle() { local file=/etc/samba/smb.conf
 #   comment) description of share
 # Return: result
 share() { local share="$1" path="$2" browsable="${3:-yes}" ro="${4:-yes}" \
-                guest="${5:-yes}" users="${6:-""}" admins="${7:-""}" \
-                writelist="${8:-""}" comment="${9:-""}" file=/etc/samba/smb.conf
-    sed -i "/\\[$share\\]/,/^\$/d" $file
-    echo "[$share]" >>$file
-    echo "   path = $path" >>$file
-    echo "   browsable = $browsable" >>$file
-    echo "   read only = $ro" >>$file
-    echo "   guest ok = $guest" >>$file
-    echo -n "   veto files = /._*/.apdisk/.AppleDouble/.DS_Store/" >>$file
-    echo -n ".TemporaryItems/.Trashes/desktop.ini/ehthumbs.db/" >>$file
-    echo "Network Trash Folder/Temporary Items/Thumbs.db/" >>$file
-    echo "   delete veto files = yes" >>$file
-    [[ ${users:-""} && ! ${users:-""} =~ all ]] &&
-        echo "   valid users = $(tr ',' ' ' <<< $users)" >>$file
-    [[ ${admins:-""} && ! ${admins:-""} =~ none ]] &&
-        echo "   admin users = $(tr ',' ' ' <<< $admins)" >>$file
-    [[ ${writelist:-""} && ! ${writelist:-""} =~ none ]] &&
-        echo "   write list = $(tr ',' ' ' <<< $writelist)" >>$file
-    [[ ${comment:-""} && ! ${comment:-""} =~ none ]] &&
-        echo "   comment = $(tr ',' ' ' <<< $comment)" >>$file
-    echo "" >>$file
-    [[ -d $path ]] || mkdir -p $path
+								guest="${5:-yes}" users="${6:-""}" admins="${7:-""}" \
+								writelist="${8:-""}" comment="${9:-""}" file=/etc/samba/smb.conf
+		sed -i "/\\[$share\\]/,/^\$/d" $file
+		echo "[$share]" >>$file
+		echo "   path = $path" >>$file
+		echo "   browsable = $browsable" >>$file
+		echo "   read only = $ro" >>$file
+		echo "   guest ok = $guest" >>$file
+		echo -n "   veto files = /._*/.apdisk/.AppleDouble/.DS_Store/" >>$file
+		echo -n ".TemporaryItems/.Trashes/desktop.ini/ehthumbs.db/" >>$file
+		echo "Network Trash Folder/Temporary Items/Thumbs.db/" >>$file
+		echo "   delete veto files = yes" >>$file
+		[[ ${users:-""} && ! ${users:-""} =~ all ]] &&
+				echo "   valid users = $(tr ',' ' ' <<< $users)" >>$file
+		[[ ${admins:-""} && ! ${admins:-""} =~ none ]] &&
+				echo "   admin users = $(tr ',' ' ' <<< $admins)" >>$file
+		[[ ${writelist:-""} && ! ${writelist:-""} =~ none ]] &&
+				echo "   write list = $(tr ',' ' ' <<< $writelist)" >>$file
+		[[ ${comment:-""} && ! ${comment:-""} =~ none ]] &&
+				echo "   comment = $(tr ',' ' ' <<< $comment)" >>$file
+		echo "" >>$file
+		[[ -d $path ]] || mkdir -p $path
 }
 
 ### smb: disable SMB2 minimum
@@ -126,21 +126,30 @@ share() { local share="$1" path="$2" browsable="${3:-yes}" ro="${4:-yes}" \
 #   none)
 # Return: result
 smb() { local file=/etc/samba/smb.conf
-    sed -i '/min protocol/d' $file
+		sed -i '/min protocol/d' $file
 }
 
-### user: add a user
-# Arguments:
-#   name) for user
-#   password) for user
-#   id) for user
-#   group) for user
-# Return: user added to container
-user() { local name="$1" passwd="$2" id="${3:-""}" group="${4:-""}"
-    [[ "$group" ]] && { grep -q "^$group:" /etc/group || addgroup "$group"; }
-    grep -q "^$name:" /etc/passwd ||
-        adduser -D -H ${group:+-G $group} ${id:+-u $id} "$name"
-    echo -e "$passwd\n$passwd" | smbpasswd -s -a "$name"
+# create user (unix user + samba user) - default group is users
+user()
+{
+	local USERNAME="$1" PASSWORD="$2" GROUPNAME="${3:-"users"}" UID="${4:-""}" SID="${5:-""}" 
+
+	# create unix group if it does not exists
+	grep -q "^${GROUPNAME}:" /etc/group || addgroup "${GROUPNAME}";
+
+	# check if user exists
+	if grep -q "^${USERNAME}:" /etc/passwd; then
+		echo "user ${USERNAME} already exists"
+	else
+		# create unix user wihtout password and home directory (optional UID)
+		adduser -D -H -G "${GROUPNAME}" "${UID:+-u $UID}" "${USERNAME}"
+
+		# add user to Samba internal user DB (optional SID)
+		echo -e "$passwd\n$passwd" | smbpasswd -s -a "${USERNAME}" "${SID:+-U $SID}"
+
+		# enable user
+		smbpasswd -e "${USERNAME}"
+	fi
 }
 
 ### workgroup: set the workgroup
@@ -148,7 +157,7 @@ user() { local name="$1" passwd="$2" id="${3:-""}" group="${4:-""}"
 #   workgroup) the name to set
 # Return: configure the correct workgroup
 workgroup() { local workgroup="$1" file=/etc/samba/smb.conf
-    sed -i 's|^\( *workgroup = \).*|\1'"$workgroup"'|' $file
+		sed -i 's|^\( *workgroup = \).*|\1'"$workgroup"'|' $file
 }
 
 ### widelinks: allow access wide symbolic links
@@ -156,8 +165,8 @@ workgroup() { local workgroup="$1" file=/etc/samba/smb.conf
 #   none)
 # Return: result
 widelinks() { local file=/etc/samba/smb.conf \
-            replace='\1\n   wide links = yes\n   unix extensions = no'
-    sed -i 's/\(follow symlinks = yes\)/'"$replace"'/' $file
+						replace='\1\n   wide links = yes\n   unix extensions = no'
+		sed -i 's/\(follow symlinks = yes\)/'"$replace"'/' $file
 }
 
 ### usage: Help
@@ -165,72 +174,73 @@ widelinks() { local file=/etc/samba/smb.conf \
 #   none)
 # Return: Help text
 usage() { local RC="${1:-0}"
-    echo "Usage: ${0##*/} [-opt] [command]
+		echo "Usage: ${0##*/} [-opt] [command]
 Options (fields in '[]' are optional, '<>' are required):
-    -h          This help
-    -c \"<from:to>\" setup character mapping for file/directory names
-                required arg: \"<from:to>\" character mappings separated by ','
-    -g \"<parameter>\" Provide global option for smb.conf
-                    required arg: \"<parameter>\" - IE: -g \"log level = 2\"
-    -i \"<path>\" Import smbpassword
-                required arg: \"<path>\" - full file path in container
-    -n          Start the 'nmbd' daemon to advertise the shares
-    -p          Set ownership and permissions on the shares
-    -r          Disable recycle bin for shares
-    -S          Disable SMB2 minimum version
-    -s \"<name;/path>[;browse;readonly;guest;users;admins;writelist;comment]\"
-                Configure a share
-                required arg: \"<name>;</path>\"
-                <name> is how it's called for clients
-                <path> path to share
-                NOTE: for the default value, just leave blank
-                [browsable] default:'yes' or 'no'
-                [readonly] default:'yes' or 'no'
-                [guest] allowed default:'yes' or 'no'
-                [users] allowed default:'all' or list of allowed users
-                [admins] allowed default:'none' or list of admin users
-                [writelist] list of users that can write to a RO share
-                [comment] description of share
-    -u \"<username;password>[;ID;group]\"       Add a user
-                required arg: \"<username>;<passwd>\"
-                <username> for user
-                <password> for user
-                [ID] for user
-                [group] for user
-    -w \"<workgroup>\"       Configure the workgroup (domain) samba should use
-                required arg: \"<workgroup>\"
-                <workgroup> for samba
-    -W          Allow access wide symbolic links
-    -I          Add an include option at the end of the smb.conf
-                required arg: \"<include file path>\"
-                <include file path> in the container, e.g. a bind mount
+		-h					This help
+		-c \"<from:to>\" setup character mapping for file/directory names
+								required arg: \"<from:to>\" character mappings separated by ','
+		-g \"<parameter>\" Provide global option for smb.conf
+										required arg: \"<parameter>\" - IE: -g \"log level = 2\"
+		-i \"<path>\" Import smbpassword
+								required arg: \"<path>\" - full file path in container
+		-n					Start the 'nmbd' daemon to advertise the shares
+		-p					Set ownership and permissions on the shares
+		-r					Disable recycle bin for shares
+		-S					Disable SMB2 minimum version
+		-s \"<name;/path>[;browse;readonly;guest;users;admins;writelist;comment]\"
+								Configure a share
+								required arg: \"<name>;</path>\"
+								<name> is how it's called for clients
+								<path> path to share
+								NOTE: for the default value, just leave blank
+								[browsable] default:'yes' or 'no'
+								[readonly] default:'yes' or 'no'
+								[guest] allowed default:'yes' or 'no'
+								[users] allowed default:'all' or list of allowed users
+								[admins] allowed default:'none' or list of admin users
+								[writelist] list of users that can write to a RO share
+								[comment] description of share
+		-u \"<username;password>[;ID;group]\"       Add a user
+								required arg: \"<username>;<passwd>\"
+								<username> for unix and samba user
+								<password> for samba user
+								[UID] for unix user
+								[group] for unix user (default group is `users`)
+								[SID] for samba user
+		-w \"<workgroup>\"       Configure the workgroup (domain) samba should use
+								required arg: \"<workgroup>\"
+								<workgroup> for samba
+		-W					Allow access wide symbolic links
+		-I					Add an include option at the end of the smb.conf
+								required arg: \"<include file path>\"
+								<include file path> in the container, e.g. a bind mount
 
 The 'command' (if provided and valid) will be run instead of samba
 " >&2
-    exit $RC
+		exit $RC
 }
 
 [[ "${USERID:-""}" =~ ^[0-9]+$ ]] && usermod -u $USERID -o smbuser
 [[ "${GROUPID:-""}" =~ ^[0-9]+$ ]] && groupmod -g $GROUPID -o users
 
 while getopts ":hc:g:i:nprs:Su:Ww:I:" opt; do
-    case "$opt" in
-        h) usage ;;
-        c) charmap "$OPTARG" ;;
-        g) global "$OPTARG" ;;
-        i) import "$OPTARG" ;;
-        n) NMBD="true" ;;
-        p) PERMISSIONS="true" ;;
-        r) recycle ;;
-        s) eval share $(sed 's/^/"/; s/$/"/; s/;/" "/g' <<< $OPTARG) ;;
-        S) smb ;;
-        u) eval user $(sed 's/^/"/; s/$/"/; s/;/" "/g' <<< $OPTARG) ;;
-        w) workgroup "$OPTARG" ;;
-        W) widelinks ;;
-        I) include "$OPTARG" ;;
-        "?") echo "Unknown option: -$OPTARG"; usage 1 ;;
-        ":") echo "No argument value for option: -$OPTARG"; usage 2 ;;
-    esac
+		case "$opt" in
+				h) usage ;;
+				c) charmap "$OPTARG" ;;
+				g) global "$OPTARG" ;;
+				i) import "$OPTARG" ;;
+				n) NMBD="true" ;;
+				p) PERMISSIONS="true" ;;
+				r) recycle ;;
+				s) eval share $(sed 's/^/"/; s/$/"/; s/;/" "/g' <<< $OPTARG) ;;
+				S) smb ;;
+				u) eval user $(sed 's/^/"/; s/$/"/; s/;/" "/g' <<< $OPTARG) ;;
+				w) workgroup "$OPTARG" ;;
+				W) widelinks ;;
+				I) include "$OPTARG" ;;
+				"?") echo "Unknown option: -$OPTARG"; usage 1 ;;
+				":") echo "No argument value for option: -$OPTARG"; usage 2 ;;
+		esac
 done
 shift $(( OPTIND - 1 ))
 
@@ -247,13 +257,13 @@ shift $(( OPTIND - 1 ))
 [[ "${INCLUDE:-""}" ]] && include "$INCLUDE"
 
 if [[ $# -ge 1 && -x $(which $1 2>&-) ]]; then
-    exec "$@"
+		exec "$@"
 elif [[ $# -ge 1 ]]; then
-    echo "ERROR: command not found: $1"
-    exit 13
+		echo "ERROR: command not found: $1"
+		exit 13
 elif ps -ef | egrep -v grep | grep -q smbd; then
-    echo "Service already running, please restart container to apply changes"
+		echo "Service already running, please restart container to apply changes"
 else
-    [[ ${NMBD:-""} ]] && ionice -c 3 nmbd -D
-    exec ionice -c 3 smbd -FS --no-process-group </dev/null
+		[[ ${NMBD:-""} ]] && ionice -c 3 nmbd -D
+		exec ionice -c 3 smbd -FS --no-process-group </dev/null
 fi
