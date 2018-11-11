@@ -34,8 +34,11 @@ OR set local storage:
 										required arg: "<from:to>" character mappings separated by ','
 				-g "<parameter>" Provide global option for smb.conf
 										required arg: "<parameter>" - IE: -g "log level = 2"
-				-i "<path>" Import smbpassword
-										required arg: "<path>" - full file path in container
+				-i "<passwd>;<group>;<smbpasswd>" Import users
+										required arg: "<passwd>;<group>;<smbpasswd>"
+										<passwd> full file path in container to unix users file
+										<group> full file path in container to unix groups file
+										<smbpasswd> full file path in container to samba users file
 				-n					Start the 'nmbd' daemon to advertise the shares
 				-p					Set ownership and permissions on the shares
 				-r					Disable recycle bin for shares
@@ -54,7 +57,7 @@ OR set local storage:
 										[writelist] list of users that can write to a RO share
 										[comment] description of share
 				-u "<username;password>[;ID;group]"       Add a user
-										required arg: \"<username>;<passwd>\"
+										required arg: "<username>;<passwd>"
 										<username> for unix and samba user
 										<password> for samba user
 										[UID] for unix user
@@ -63,8 +66,8 @@ OR set local storage:
 				-w "<workgroup>"       Configure the workgroup (domain) samba should use
 										required arg: "<workgroup>"
 										<workgroup> for samba
-				-W          Allow access wide symbolic links
-				-I          Add an include option at the end of the smb.conf
+				-W					Allow access wide symbolic links
+				-I					Add an include option at the end of the smb.conf
 										required arg: "<include file path>"
 										<include file path> in the container, e.g. a bind mount
 

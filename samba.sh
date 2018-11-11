@@ -53,15 +53,40 @@ include() { local includefile="$1" file=/etc/samba/smb.conf
 		echo "include = $includefile" >> "$file"
 }
 
-### import: import a smbpasswd file
-# Arguments:
-#   file) file to import
-# Return: user(s) added to container
-import() { local file="$1" name id
-		while read name id; do
-				grep -q "^$name:" /etc/passwd || adduser -D -H -u "$id" "$name"
-		done < <(cut -d: -f1,2 $file | sed 's/:/ /')
-		pdbedit -i smbpasswd:$file
+# create unix and samba users from smbpasswd file
+import()
+{
+	local UNIX_USERS_FILE="$1" UNIX_GROUPS_FILE="$2" SAMBA_USERS_FILE="$3" USERNAME UID
+	
+	# read UNIX_USERS_FILE
+	while read USERNAME UID GID; do
+
+		# find groupname corresponding to GID
+		GROUPNAME=$(grep ":${GID}:" "${UNIX_GROUPS_FILE}" | sed -E "s/^([a-zA-Z0-9]*):x:[0-9]+:.*$/\1/");
+
+		# TODO : handle unfound groupname
+
+		# create unix group (with correct GID) if it does not exists
+		grep -q "^${GROUPNAME}:" /etc/group || addgroup -g "${GID}" "${GROUPNAME}";
+
+		# check if unix user exists
+		if grep -q "^${USERNAME}:" /etc/passwd; then
+			echo "user ${USERNAME} already exists"
+		else
+			# create unix user with correct password and group, without password and home directory
+			adduser -D -H -u "${UID}" -G "${GROUPNAME}" "${USERNAME}"
+
+			# add user to Samba internal user DB (optional SID)
+			echo -e "$passwd\n$passwd" | smbpasswd -s -a "${USERNAME}" "${SID:+-U $SID}"
+
+			# enable user
+			smbpasswd -e "${USERNAME}"
+		fi
+
+	done < <(cut -d: -f1,3,4 $UNIX_USERS_FILE | sed 's/:/ /g')
+
+	# import samba users database
+	pdbedit -i smbpasswd:$SAMBA_USERS_FILE
 }
 
 ### perms: fix ownership and permissions of share paths
@@ -136,17 +161,17 @@ user()
 	# create unix group if it does not exists
 	grep -q "^${GROUPNAME}:" /etc/group || addgroup "${GROUPNAME}";
 
-	# check if user exists
+	# check if unix user exists
 	if grep -q "^${USERNAME}:" /etc/passwd; then
 		echo "user ${USERNAME} already exists"
 	else
-		# create unix user wihtout password and home directory (optional UID)
-		adduser -D -H -G "${GROUPNAME}" "${UID:+-u $UID}" "${USERNAME}"
+		# create unix user without password and home directory (optional UID)
+		adduser -D -H "${UID:+-u $UID}" -G "${GROUPNAME}" "${USERNAME}"
 
-		# add user to Samba internal user DB (optional SID)
+		# add user to samba internal user DB (optional SID)
 		echo -e "$passwd\n$passwd" | smbpasswd -s -a "${USERNAME}" "${SID:+-U $SID}"
 
-		# enable user
+		# enable samba user
 		smbpasswd -e "${USERNAME}"
 	fi
 }
@@ -180,8 +205,11 @@ Options (fields in '[]' are optional, '<>' are required):
 								required arg: \"<from:to>\" character mappings separated by ','
 		-g \"<parameter>\" Provide global option for smb.conf
 										required arg: \"<parameter>\" - IE: -g \"log level = 2\"
-		-i \"<path>\" Import smbpassword
-								required arg: \"<path>\" - full file path in container
+		-i \"<passwd>;<group>;<smbpasswd>\" Import users
+								required arg: \"<passwd>;<group>;<smbpasswd>\"
+								<passwd> full file path in container to unix users file
+								<group> full file path in container to unix groups file
+								<smbpasswd> full file path in container to samba users file
 		-n					Start the 'nmbd' daemon to advertise the shares
 		-p					Set ownership and permissions on the shares
 		-r					Disable recycle bin for shares
