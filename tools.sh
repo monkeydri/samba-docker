@@ -21,23 +21,23 @@ set -o nounset                              # Treat unset variables as an error
 # create user (unix user + samba user) - default group is users
 create_user()
 {
-	local USERNAME="$1" PASSWORD="$2" GROUPNAME="${3:-"users"}" UID="${4:-""}" SID="${5:-""}" 
+	local username="$1" password="$2" groupname="${3:-"users"}" uid="${4:-""}" sid="${5:-""}" 
 
 	# create unix group if it does not exists
-	grep -q "^${GROUPNAME}:" /etc/group || addgroup "${GROUPNAME}";
+	grep -q "^${groupname}:" /etc/group || addgroup "${groupname}";
 
 	# check if unix user exists
-	if grep -q "^${USERNAME}:" /etc/passwd; then
-		echo "user ${USERNAME} already exists"
+	if grep -q "^${username}:" /etc/passwd; then
+		echo "user ${username} already exists"
 	else
-		# create unix user without password and home directory (optional UID)
-		adduser -D -H "${UID:+-u $UID}" -G "${GROUPNAME}" "${USERNAME}"
+		# create unix user without password and home directory (optional uid)
+		adduser -D -H "${uid:+-u $uid}" -G "${groupname}" "${username}"
 
-		# add user to samba internal user DB (optional SID)
-		echo -e "$passwd\n$passwd" | smbpasswd -s -a "${USERNAME}" "${SID:+-U $SID}"
+		# add user to samba internal user DB (optional sid)
+		echo -e "$password\n$password" | smbpasswd -s -a "${username}" "${sid:+-U $sid}"
 
 		# enable samba user
-		smbpasswd -e "${USERNAME}"
+		smbpasswd -e "${username}"
 	fi
 }
 
@@ -46,19 +46,19 @@ export_users()
 {
 	local EXPORT_DIR="${1:-"/etc/export"}"
 
-	 UNIX_USERS_FILE="${EXPORT_DIR}/passwd" UNIX_GROUPS_FILE="${EXPORT_DIR}/group" SAMBA_USERS_FILE="${EXPORT_DIR}/smbpasswd"
+	UNIX_USERS_FILE="${EXPORT_DIR}/passwd" UNIX_GROUPS_FILE="${EXPORT_DIR}/group" SAMBA_USERS_FILE="${EXPORT_DIR}/smbpasswd"
 
 	# get list of samba usernames (pipe separated)
-	USERNAMES=$(pdbedit -L | cut -d: -f1 | tr '\n' '|' | rev | cut -c 2- | rev)
+	usernames=$(pdbedit -L | cut -d: -f1 | tr '\n' '|' | rev | cut -c 2- | rev)
 
 	# create export dir if required
 	mkdir -p "${EXPORT_DIR}"
 
 	# export corresponding unix users info
-	grep -E "${USERNAMES}" /etc/passwd > "${UNIX_USERS_FILE}"
+	grep -E "${usernames}" /etc/passwd > "${UNIX_USERS_FILE}"
 
 	# export corresponding unix group info
-	grep -E "${USERNAMES}" /etc/group > "${UNIX_GROUPS_FILE}"
+	grep -E "${usernames}" /etc/group > "${UNIX_GROUPS_FILE}"
 
 	# export samba users DB
 	pdbedit -e smbpasswd > "${SAMBA_USERS_FILE}"

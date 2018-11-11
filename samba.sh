@@ -56,31 +56,31 @@ include() { local includefile="$1" file=/etc/samba/smb.conf
 # create unix and samba users from smbpasswd file
 import()
 {
-	local UNIX_USERS_FILE="$1/passwd" UNIX_GROUPS_FILE="$1/group" SAMBA_USERS_FILE="$1/smbpasswd" USERNAME UID
+	local UNIX_USERS_FILE="$1/passwd" UNIX_GROUPS_FILE="$1/group" SAMBA_USERS_FILE="$1/smbpasswd" username uid
 
 	# read UNIX_USERS_FILE
-	while read USERNAME UID GID; do
+	while read username uid gid; do
 
-		# find groupname corresponding to GID
-		GROUPNAME=$(grep ":${GID}:" "${UNIX_GROUPS_FILE}" | sed -E "s/^([a-zA-Z0-9]*):x:[0-9]+:.*$/\1/");
+		# find groupname corresponding to gid
+		groupname=$(grep ":${gid}:" "${UNIX_GROUPS_FILE}" | sed -E "s/^([a-zA-Z0-9]*):x:[0-9]+:.*$/\1/");
 
 		# TODO : handle unfound groupname
 
-		# create unix group (with correct GID) if it does not exists
-		grep -q "^${GROUPNAME}:" /etc/group || addgroup -g "${GID}" "${GROUPNAME}";
+		# create unix group (with correct gid) if it does not exists
+		grep -q "^${groupname}:" /etc/group || addgroup -g "${gid}" "${groupname}";
 
 		# check if unix user exists
-		if grep -q "^${USERNAME}:" /etc/passwd; then
-			echo "user ${USERNAME} already exists"
+		if grep -q "^${username}:" /etc/passwd; then
+			echo "user ${username} already exists"
 		else
 			# create unix user with correct password and group, without password and home directory
-			adduser -D -H -u "${UID}" -G "${GROUPNAME}" "${USERNAME}"
+			adduser -D -H -u "${uid}" -G "${groupname}" "${username}"
 
-			# add user to Samba internal user DB (optional SID)
-			echo -e "$passwd\n$passwd" | smbpasswd -s -a "${USERNAME}" "${SID:+-U $SID}"
+			# add user to Samba internal user DB
+			echo -e "$passwd\n$passwd" | smbpasswd -s -a "${username}"
 
 			# enable user
-			smbpasswd -e "${USERNAME}"
+			smbpasswd -e "${username}"
 		fi
 
 	done < <(cut -d: -f1,3,4 $UNIX_USERS_FILE | sed 's/:/ /g')
@@ -156,23 +156,23 @@ smb()
 # create user (unix user + samba user) - default group is users
 user()
 {
-	local USERNAME="$1" PASSWORD="$2" GROUPNAME="${3:-"users"}" UID="${4:-""}" SID="${5:-""}" 
+	local username="$1" password="$2" groupname="${3:-"users"}" uid="${4:-""}" sid="${5:-""}" 
 
 	# create unix group if it does not exists
-	grep -q "^${GROUPNAME}:" /etc/group || addgroup "${GROUPNAME}";
+	grep -q "^${groupname}:" /etc/group || addgroup "${groupname}";
 
 	# check if unix user exists
-	if grep -q "^${USERNAME}:" /etc/passwd; then
-		echo "user ${USERNAME} already exists"
+	if grep -q "^${username}:" /etc/passwd; then
+		echo "user ${username} already exists"
 	else
 		# create unix user without password and home directory (optional UID)
-		adduser -D -H "${UID:+-u $UID}" -G "${GROUPNAME}" "${USERNAME}"
+		adduser -D -H "${uid:+-u $uid}" -G "${groupname}" "${username}"
 
 		# add user to samba internal user DB (optional SID)
-		echo -e "$passwd\n$passwd" | smbpasswd -s -a "${USERNAME}" "${SID:+-U $SID}"
+		echo -e "$password\n$password" | smbpasswd -s -a "${username}" "${sid:+-U $sid}"
 
 		# enable samba user
-		smbpasswd -e "${USERNAME}"
+		smbpasswd -e "${username}"
 	fi
 }
 
