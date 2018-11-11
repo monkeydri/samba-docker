@@ -26,6 +26,10 @@ export_users()
 	# get list of samba usernames (pipe separated)
 	USERNAMES=$(pdbedit -L | cut -d: -f1 | tr '\n' '|' | rev | cut -c 2- | rev)
 
+	# create required parent dirs if necessary (Note : also empties the file)
+	install -Dv /dev/null "${UNIX_USERS_FILE}"
+	install -Dv /dev/null "${UNIX_GROUPS_FILE}"
+
 	# export corresponding unix users info
 	grep -E "${USERNAMES}" /etc/passwd > "${UNIX_USERS_FILE}"
 
@@ -33,7 +37,7 @@ export_users()
 	grep -E "${USERNAMES}" /etc/group > "${UNIX_GROUPS_FILE}"
 
 	# export samba users DB
-	pdbedit -e smbpasswd:"${SAMBA_USERS_FILE}"
+	pdbedit -e smbpasswd > "${SAMBA_USERS_FILE}"
 }
 
 # usage: Help
