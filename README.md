@@ -116,6 +116,32 @@ Any of the commands can be run at creation with `docker run` or later with
 								-s "example1 private share;/example1;no;no;no;example1" \
 								-s "example2 private share;/example2;no;no;no;example2"
 
+# Export users and import it back to another instance
+
+*assuming container is named `samba`*
+
+## export
+
+`docker exec samba tools -e /etc/export/passwd /etc/export/group /etc/export/smbpasswd`
+
+## delete old container
+
+`docker cp samba:/etc/export/passwd ./users/passwd`
+`docker cp samba:/etc/export/group ./users/group`
+`docker cp samba:/etc/export/smbpasswd ./users/smbpasswd`
+
+`docker stop samba && docker rm samba`
+
+## create new container and import back users
+
+```
+docker run -it -p 139:139 -p 445:445 -d dperson/samba \
+	-i /etc/import/passwd /etc/export/group /etc/export/smbpasswd
+	-v ${PWD}/users/passwd:/etc/import/passwd
+	-v ${PWD}/users/group:/etc/import/group
+	-v ${PWD}/users/smbpasswd:/etc/import/smbpasswd
+```
+
 # User Feedback
 
 ## Issues
