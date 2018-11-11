@@ -56,8 +56,8 @@ include() { local includefile="$1" file=/etc/samba/smb.conf
 # create unix and samba users from smbpasswd file
 import()
 {
-	local UNIX_USERS_FILE="$1" UNIX_GROUPS_FILE="$2" SAMBA_USERS_FILE="$3" USERNAME UID
-	
+	local UNIX_USERS_FILE="$1/passwd" UNIX_GROUPS_FILE="$1/group" SAMBA_USERS_FILE="$1/smbpasswd" USERNAME UID
+
 	# read UNIX_USERS_FILE
 	while read USERNAME UID GID; do
 
@@ -205,11 +205,9 @@ Options (fields in '[]' are optional, '<>' are required):
 								required arg: \"<from:to>\" character mappings separated by ','
 		-g \"<parameter>\" Provide global option for smb.conf
 										required arg: \"<parameter>\" - IE: -g \"log level = 2\"
-		-i \"<passwd>;<group>;<smbpasswd>\" Import users
-								required arg: \"<passwd>;<group>;<smbpasswd>\"
-								<passwd> full file path in container to unix users file
-								<group> full file path in container to unix groups file
-								<smbpasswd> full file path in container to samba users file
+		-i \"<path>\" Import users
+								required arg: \"<path>\"
+								<path> full file path in container to users files directory
 		-n					Start the 'nmbd' daemon to advertise the shares
 		-p					Set ownership and permissions on the shares
 		-r					Disable recycle bin for shares

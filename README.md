@@ -34,11 +34,9 @@ OR set local storage:
 										required arg: "<from:to>" character mappings separated by ','
 				-g "<parameter>" Provide global option for smb.conf
 										required arg: "<parameter>" - IE: -g "log level = 2"
-				-i "<passwd>;<group>;<smbpasswd>" Import users
-										required arg: "<passwd>;<group>;<smbpasswd>"
-										<passwd> full file path in container to unix users file
-										<group> full file path in container to unix groups file
-										<smbpasswd> full file path in container to samba users file
+				-i "<path>" Import users
+										required arg: "<path>"
+										<path> full file path in container to users files directory
 				-n					Start the 'nmbd' daemon to advertise the shares
 				-p					Set ownership and permissions on the shares
 				-r					Disable recycle bin for shares
@@ -122,13 +120,11 @@ Any of the commands can be run at creation with `docker run` or later with
 
 ## export
 
-`docker exec samba tools -e /etc/export/passwd /etc/export/group /etc/export/smbpasswd`
+`docker exec samba tools -e /etc/export`
 
 ## delete old container
 
-`docker cp samba:/etc/export/passwd ./users/passwd`
-`docker cp samba:/etc/export/group ./users/group`
-`docker cp samba:/etc/export/smbpasswd ./users/smbpasswd`
+`docker cp samba:/etc/export ./users`
 
 `docker stop samba && docker rm samba`
 
@@ -136,10 +132,8 @@ Any of the commands can be run at creation with `docker run` or later with
 
 ```
 docker run -it -p 139:139 -p 445:445 -d dperson/samba \
-	-i /etc/import/passwd /etc/export/group /etc/export/smbpasswd
-	-v ${PWD}/users/passwd:/etc/import/passwd
-	-v ${PWD}/users/group:/etc/import/group
-	-v ${PWD}/users/smbpasswd:/etc/import/smbpasswd
+	-i /etc/import
+	-v ${PWD}/users/:/etc/import/
 ```
 
 # User Feedback
