@@ -124,7 +124,7 @@ Any of the commands can be run at creation with `docker run` or later with
 
 ## delete old container
 
-`docker cp samba:/etc/export ./users`
+`docker cp samba:/etc/export/. ./users`
 
 `docker stop samba && docker rm samba`
 

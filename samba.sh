@@ -71,16 +71,10 @@ import()
 
 		# check if unix user exists
 		if grep -q "^${username}:" /etc/passwd; then
-			echo "user ${username} already exists"
+			echo "unix user ${username} already exists"
 		else
-			# create unix user with correct password and group, without password and home directory
+			# create unix user with correct UID and group, without password and home directory
 			adduser -D -H -u "${uid}" -G "${groupname}" "${username}"
-
-			# add user to Samba internal user DB
-			echo -e "$passwd\n$passwd" | smbpasswd -s -a "${username}"
-
-			# enable user
-			smbpasswd -e "${username}"
 		fi
 
 	done < <(cut -d: -f1,3,4 $UNIX_USERS_FILE | sed 's/:/ /g')
@@ -163,7 +157,7 @@ user()
 
 	# check if unix user exists
 	if grep -q "^${username}:" /etc/passwd; then
-		echo "user ${username} already exists"
+		echo "unix user ${username} already exists"
 	else
 		# create unix user without password and home directory (optional UID)
 		adduser -D -H "${uid:+-u $uid}" -G "${groupname}" "${username}"

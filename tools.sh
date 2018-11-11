@@ -30,7 +30,7 @@ create_user()
 	if grep -q "^${username}:" /etc/passwd; then
 		echo "user ${username} already exists"
 	else
-		# create unix user without password and home directory (optional uid)
+		# create unix user with correct group without password and home directory (optional uid)
 		adduser -D -H -G "${groupname}" ${uid:+-u $uid} "${username}";
 
 		# add user to samba internal user DB (optional sid)
